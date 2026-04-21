@@ -436,7 +436,6 @@ public struct SessionState: Equatable, Sendable {
 
     /// Remove sessions that are no longer visible in the island.
     /// Returns `true` if any sessions were removed.
-    @discardableResult
     /// Manually mark a session as completed and ended.
     /// Intended for remote sessions whose SSH tunnel dropped without a
     /// SessionEnd hook.

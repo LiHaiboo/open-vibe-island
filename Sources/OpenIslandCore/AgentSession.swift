@@ -522,7 +522,12 @@ public extension AgentSession {
     }
 
     var lastAssistantMessageText: String? {
-        codexMetadata?.lastAssistantMessage ?? claudeMetadata?.lastAssistantMessage ?? geminiMetadata?.lastAssistantMessage ?? openCodeMetadata?.lastAssistantMessage ?? cursorMetadata?.lastAssistantMessage ?? catPawMetadata?.lastAssistantMessage
+        if let msg = codexMetadata?.lastAssistantMessage { return msg }
+        if let msg = claudeMetadata?.lastAssistantMessage { return msg }
+        if let msg = geminiMetadata?.lastAssistantMessage { return msg }
+        if let msg = openCodeMetadata?.lastAssistantMessage { return msg }
+        if let msg = cursorMetadata?.lastAssistantMessage { return msg }
+        return catPawMetadata?.lastAssistantMessage
     }
 
     var completionAssistantMessageText: String? {
