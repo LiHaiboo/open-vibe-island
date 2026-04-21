@@ -1512,6 +1512,12 @@ final class AppModel {
             }
 
             return payload.cursorMetadata.lastAssistantMessage ?? "Cursor session metadata updated."
+        case let .catPawSessionMetadataUpdated(payload):
+            if let currentTool = payload.catPawMetadata.currentTool {
+                return "CatPaw is running \(currentTool)."
+            }
+
+            return payload.catPawMetadata.lastAssistantMessage ?? "CatPaw session metadata updated."
         case let .actionableStateResolved(payload):
             return "Actionable state resolved for session \(payload.sessionID)."
         }

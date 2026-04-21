@@ -252,6 +252,8 @@ final class ProcessMonitoringCoordinator {
             payload.sessionID
         case let .cursorSessionMetadataUpdated(payload):
             payload.sessionID
+        case let .catPawSessionMetadataUpdated(payload):
+            payload.sessionID
         case let .actionableStateResolved(payload):
             payload.sessionID
         }
@@ -1016,6 +1018,8 @@ final class ProcessMonitoringCoordinator {
             return "Cursor \(session.id.prefix(8))"
         case .kimiCLI:
             return "Kimi \(session.id.prefix(8))"
+        case .catPaw:
+            return "CatPaw \(session.id.prefix(8))"
         }
     }
 }
