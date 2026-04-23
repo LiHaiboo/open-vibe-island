@@ -391,14 +391,19 @@ final class ProcessMonitoringCoordinator {
             }
         }
 
-        // CatPaw is an Electron-based IDE (com.meituan.catpaw). Sessions are
-        // hook-managed; keep them alive while CatPaw.app or CatDesk.app is
-        // running. Completed/ended sessions are allowed to expire after a
-        // staleness window so the island clears when the user stops chatting.
+        // CatPaw is available as a desktop app (com.meituan.catpaw / com.catpaw.cowork)
+        // and as a plugin inside IntelliJ IDEA (com.jetbrains.intellij / com.jetbrains.intellij.ce).
+        // Sessions are hook-managed; keep them alive while any CatPaw host is running.
+        // Completed/ended sessions are allowed to expire after a staleness window
+        // so the island clears when the user stops chatting.
         let isCatPawRunning = !NSRunningApplication.runningApplications(
             withBundleIdentifier: "com.meituan.catpaw"
         ).isEmpty || !NSRunningApplication.runningApplications(
             withBundleIdentifier: "com.catpaw.cowork"
+        ).isEmpty || !NSRunningApplication.runningApplications(
+            withBundleIdentifier: "com.jetbrains.intellij.ce"
+        ).isEmpty || !NSRunningApplication.runningApplications(
+            withBundleIdentifier: "com.jetbrains.intellij"
         ).isEmpty
         if isCatPawRunning {
             for session in sessions where session.tool == .catPaw && !session.isDemoSession {

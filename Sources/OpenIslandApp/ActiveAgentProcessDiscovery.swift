@@ -686,8 +686,9 @@ struct ActiveAgentProcessDiscovery {
         return firstToken == "kimi" || firstToken.hasSuffix("/kimi")
     }
 
-    /// Matches the CatPaw desktop app (com.meituan.catpaw) main Electron process
-    /// and the CatDesk agent-sdk server process (catpaw-cli server).
+    /// Matches the CatPaw desktop app (com.meituan.catpaw), the CatDesk agent-sdk
+    /// server process (catpaw-cli server), and the IDEA CatPaw plugin host process
+    /// (IntelliJ IDEA / idekit).
     private func isCatPawProcess(command: String) -> Bool {
         let lowered = command.lowercased()
         // CatPaw.app main process: /Applications/CatPaw.app/Contents/MacOS/Electron
@@ -696,6 +697,13 @@ struct ActiveAgentProcessDiscovery {
         }
         // CatDesk agent SDK server: catpaw-cli server
         if lowered.contains("catpaw-cli") && lowered.contains("server") {
+            return true
+        }
+        // IntelliJ IDEA with CatPaw plugin (idekit): main idea process
+        if lowered.contains("/intellij idea") && lowered.hasSuffix("/idea") {
+            return true
+        }
+        if lowered.contains("/idea.app/contents/macos/idea") {
             return true
         }
         return false
