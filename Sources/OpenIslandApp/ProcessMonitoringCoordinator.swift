@@ -391,6 +391,26 @@ final class ProcessMonitoringCoordinator {
             }
         }
 
+        // CatPaw is an Electron-based IDE (com.meituan.catpaw). Sessions are
+        // hook-managed; keep them alive while CatPaw.app or CatDesk.app is
+        // running. Completed/ended sessions are allowed to expire after a
+        // staleness window so the island clears when the user stops chatting.
+        let isCatPawRunning = !NSRunningApplication.runningApplications(
+            withBundleIdentifier: "com.meituan.catpaw"
+        ).isEmpty || !NSRunningApplication.runningApplications(
+            withBundleIdentifier: "com.catpaw.cowork"
+        ).isEmpty
+        if isCatPawRunning {
+            for session in sessions where session.tool == .catPaw && !session.isDemoSession {
+                if session.isSessionEnded { continue }
+                let isStale = session.phase == .completed
+                    && session.updatedAt.addingTimeInterval(Self.cursorStalenessTimeout) < Date.now
+                if !isStale {
+                    aliveIDs.insert(session.id)
+                }
+            }
+        }
+
         // Cursor sessions: Cursor is an Electron IDE — we cannot match
         // individual session IDs from ps/lsof.  Keep Cursor sessions alive
         // while Cursor.app is running, but let completed sessions expire

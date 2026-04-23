@@ -107,7 +107,7 @@ struct ActiveAgentProcessDiscovery {
                 // Wrappers like `npm exec` and their child `node` process share the same TTY and CWD.
                 // Treat a missing cwd as a wildcard for the TTY to match existing claims, but let concrete cwd overwrite wildcard.
                 let ttyId = process.terminalTTY ?? process.pid
-                
+
                 if cwd == nil {
                     // Only insert wildcard if no concrete claim exists for this TTY.
                     if claimedKeys.contains(where: { $0.hasPrefix("opencode:\(ttyId):") && $0 != "opencode:\(ttyId):" }) {
@@ -178,6 +178,23 @@ struct ActiveAgentProcessDiscovery {
                 let lsofOutput = lsofOutput(pid: process.pid)
                 snapshots.append(ProcessSnapshot(
                     tool: .kimiCLI,
+                    sessionID: nil,
+                    workingDirectory: lsofOutput.flatMap(workingDirectory(from:)),
+                    terminalTTY: process.terminalTTY,
+                    terminalApp: terminalApp(for: process, processesByPID: processesByPID)
+                ))
+                continue
+            }
+
+            if isCatPawProcess(command: process.command) {
+                let claimKey = "catpaw:\(process.pid)"
+                guard claimedKeys.insert(claimKey).inserted else {
+                    continue
+                }
+
+                let lsofOutput = lsofOutput(pid: process.pid)
+                snapshots.append(ProcessSnapshot(
+                    tool: .catPaw,
                     sessionID: nil,
                     workingDirectory: lsofOutput.flatMap(workingDirectory(from:)),
                     terminalTTY: process.terminalTTY,
@@ -608,7 +625,7 @@ struct ActiveAgentProcessDiscovery {
                 let baseToken = token.hasPrefix("@") ? String(token) : (token.split(separator: "@").first.map(String.init) ?? String(token))
                 return baseToken == "opencode" || baseToken == "opencode-ai"
             }
-            
+
             if let packageIndex = packageIndex {
                 let installLike: Set<Substring> = ["install", "i", "add", "remove", "rm", "uninstall", "update", "upgrade", "up", "unlink"]
                 let isInstallCommand = tokens[..<packageIndex].contains(where: { installLike.contains($0) })
@@ -667,6 +684,21 @@ struct ActiveAgentProcessDiscovery {
         }
 
         return firstToken == "kimi" || firstToken.hasSuffix("/kimi")
+    }
+
+    /// Matches the CatPaw desktop app (com.meituan.catpaw) main Electron process
+    /// and the CatDesk agent-sdk server process (catpaw-cli server).
+    private func isCatPawProcess(command: String) -> Bool {
+        let lowered = command.lowercased()
+        // CatPaw.app main process: /Applications/CatPaw.app/Contents/MacOS/Electron
+        if lowered.contains("/catpaw.app/contents/macos/electron") {
+            return true
+        }
+        // CatDesk agent SDK server: catpaw-cli server
+        if lowered.contains("catpaw-cli") && lowered.contains("server") {
+            return true
+        }
+        return false
     }
 
     /// Returns `true` when the given `ps` command string belongs to a Claude Code process.
